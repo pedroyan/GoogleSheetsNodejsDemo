@@ -57,9 +57,17 @@ async function addRow() {
 	await promisify(sheet.addRow)(row);
 }
 
+async function deleteStudent(name) {
+	const rows = await promisify(sheet.getRows)({
+		query: `studentname = ${name}`
+	});
+
+	rows[0].del();
+}
+
 async function main() {
 	await initSheet();
-	await addRow();
+	await deleteStudent('Pedro');
 	await printRows();
 }
 
