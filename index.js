@@ -11,21 +11,56 @@ function printStudent(student) {
 	console.log('-----------------------------------');
 }
 
-async function accessSpreadsheet() {
-	const doc = new GoogleSpreadsheet(
-		'1pL3NW3A8a0HzZCNpxFBbwJBMvI5sWz6brkqPsMB6yCQ'
-	);
-	await promisify(doc.useServiceAccountAuth)(credentials);
-	const info = await promisify(doc.getInfo)();
+let info = null;
+let sheet = null;
 
-	const sheet = info.worksheets[0];
+const doc = new GoogleSpreadsheet(
+	'1pL3NW3A8a0HzZCNpxFBbwJBMvI5sWz6brkqPsMB6yCQ'
+);
+
+async function initSheet() {
+	await promisify(doc.useServiceAccountAuth)(credentials);
+	info = await promisify(doc.getInfo)();
+	sheet = info.worksheets[0];
+}
+
+async function printRows() {
 	const rows = await promisify(sheet.getRows)({
-		offset: 1,
-		limit: 10,
-		orderby: 'homestate'
+		offset: 1
+		//limit: 10,
+		//orderby: 'homestate'
 	});
 
 	rows.forEach(s => printStudent(s));
 }
 
-accessSpreadsheet().catch(e => console.log(e));
+async function queryAndUpdateRows() {
+	const rows = await promisify(sheet.getRows)({
+		query: 'homestate = NY'
+	});
+
+	rows.forEach(s => {
+		s.homestate = 'DF';
+		s.save();
+	});
+}
+
+async function addRow() {
+	const row = {
+		studentName: 'Pedro',
+		major: 'Computer Engineering',
+		classlevel: '6. Godlike',
+		homestate: 'PA',
+		extracurricularactivity: 'Business'
+	};
+
+	await promisify(sheet.addRow)(row);
+}
+
+async function main() {
+	await initSheet();
+	await addRow();
+	await printRows();
+}
+
+main().catch(e => console.log(e));
