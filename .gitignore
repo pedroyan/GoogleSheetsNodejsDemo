@@ -1,2 +1,6 @@
 node_modules/
 client_secret.json
+
+gapi_credentials.json
+
+token.json
